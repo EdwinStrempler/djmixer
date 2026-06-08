@@ -48,7 +48,7 @@ La app muestra un tutorial por pasos la primera vez y guarda en `localStorage` q
 - `Pre-cue`: manda una copia del deck al dispositivo seleccionado, sin depender del crossfader.
 - `Probar`: manda un tono corto al dispositivo de pre-cue seleccionado.
 - `Tutorial`: vuelve a abrir el tutorial aunque ya lo hayas visto.
-- `Set Cue`: guarda el punto cue en la posicion actual.
+- `Set Cue`: guarda el punto cue en la posicion actual. Al cargar una cancion, el cue inicia en `0:00`.
 - `Cue`: salta al punto cue guardado sin importar si el deck esta pausado o reproduciendo.
 - Circulo del deck: click en `-5` / `+5` o arrastra izquierda/derecha para mover la pista de forma continua. El ajuste de tempo afecta cuanto avanza o retrocede.
 - Al cargar una cancion aparece una barra de precarga/analisis antes de mostrar BPM y onda.

@@ -254,20 +254,75 @@ function getFaderPercent(value, min, max) {
 }
 
 function HorizontalSvgFader({ value, min, max, step = 1, onChange, ariaLabel }) {
+  const faderRef = useRef(null);
+  const svgRef = useRef(null);
   const percent = Math.max(0, Math.min(100, getFaderPercent(value, min, max)));
+  const railStart = 12;
+  const railWidth = 196;
+
+  function snapValue(nextValue) {
+    const snapped = Math.round(nextValue / step) * step;
+    const bounded = Math.max(min, Math.min(max, snapped));
+    return Number(bounded.toFixed(3));
+  }
+
+  function setFromClientX(clientX) {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const matrix = svg.getScreenCTM();
+    if (!matrix) return;
+
+    const point = svg.createSVGPoint();
+    point.x = clientX;
+    point.y = svg.getBoundingClientRect().top + svg.getBoundingClientRect().height / 2;
+    const svgPoint = point.matrixTransform(matrix.inverse());
+    const nextPercent = Math.max(0, Math.min(1, (svgPoint.x - railStart) / railWidth));
+    onChange(snapValue(min + (max - min) * nextPercent));
+  }
+
+  function handlePointer(event) {
+    event.preventDefault();
+    faderRef.current?.setPointerCapture?.(event.pointerId);
+    setFromClientX(event.clientX);
+  }
+
+  function handleKeyDown(event) {
+    const increment = event.shiftKey ? step * 10 : step;
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
+      event.preventDefault();
+      onChange(snapValue(value - increment));
+    }
+    if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      onChange(snapValue(value + increment));
+    }
+    if (event.key === 'Home') {
+      event.preventDefault();
+      onChange(min);
+    }
+    if (event.key === 'End') {
+      event.preventDefault();
+      onChange(max);
+    }
+  }
 
   return (
-    <div className="svg-fader horizontal-svg-fader">
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(event) => onChange(Number(event.target.value))}
-        aria-label={ariaLabel}
-      />
-      <svg viewBox="0 0 220 42" aria-hidden="true">
+    <div
+      className="svg-fader horizontal-svg-fader"
+      ref={faderRef}
+      role="slider"
+      tabIndex="0"
+      aria-label={ariaLabel}
+      aria-valuemin={min}
+      aria-valuemax={max}
+      aria-valuenow={value}
+      onPointerDown={handlePointer}
+      onPointerMove={(event) => {
+        if (event.buttons === 1) setFromClientX(event.clientX);
+      }}
+      onKeyDown={handleKeyDown}
+    >
+      <svg ref={svgRef} viewBox="0 0 220 42" aria-hidden="true">
         <rect x="12" y="18" width="196" height="6" rx="3" className="pot-rail" />
         <rect x="12" y="18" width={(196 * percent) / 100} height="6" rx="3" className="pot-fill" />
         <g transform={`translate(${12 + (196 * percent) / 100} 21)`}>
@@ -710,7 +765,7 @@ function Deck({
     setIsPlaying(false);
     syncCurrentTime(0);
     setCuePoint(0);
-    setHasCue(false);
+    setHasCue(true);
     setDuration(0);
     audioRef.current.src = objectUrlRef.current;
     cueAudioRef.current.src = objectUrlRef.current;
@@ -901,7 +956,7 @@ function Deck({
         <span>{formatTime(duration)}</span>
       </div>
 
-      <label className="channel-volume">
+      <div className="channel-volume">
         <span>Volumen canal</span>
         <HorizontalSvgFader
           min={0}
@@ -911,9 +966,9 @@ function Deck({
           ariaLabel={`Volumen canal ${side}`}
         />
         <strong>{mixVolume}% mix {preCue ? `/ ${cueVolume}% cue` : ''}</strong>
-      </label>
+      </div>
 
-      <label className="channel-effect">
+      <div className="channel-effect">
         <span>Flanger</span>
         <HorizontalSvgFader
           min={0}
@@ -923,7 +978,7 @@ function Deck({
           ariaLabel={`Flanger canal ${side}`}
         />
         <strong>{flangerAmount}%</strong>
-      </label>
+      </div>
 
       <div className="output-panel">
         <span>Salida pre-cue local</span>
@@ -962,7 +1017,7 @@ function Tutorial({ onClose }) {
     },
     {
       title: '3. Prepara con cue',
-      body: 'Usa Set Cue para guardar un punto. Usa Cue para saltar a ese punto aunque el deck este sonando o pausado. El circulo permite mover la pista de forma continua; -5 y +5 hacen saltos rapidos.',
+      body: 'Al cargar una cancion, el cue inicia en 0:00. Usa Set Cue para guardar otro punto. Usa Cue para saltar a ese punto aunque el deck este sonando o pausado. El circulo permite mover la pista de forma continua; -5 y +5 hacen saltos rapidos.',
     },
     {
       title: '4. Ajusta tempo y volumen',
@@ -1109,7 +1164,7 @@ function App() {
       <header className="topbar">
         <div>
           <p className="eyebrow">Practice mixer</p>
-          <h1>DJ Mixer</h1>
+          <h1>Mixer</h1>
         </div>
         <div className="topbar-actions">
           <button type="button" onClick={() => setShowTutorial(true)}>

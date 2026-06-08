@@ -527,16 +527,12 @@ h2 {
   width: 100%;
   min-width: 0;
   height: 42px;
+  cursor: pointer;
+  outline: none;
 }
 
-.horizontal-svg-fader input {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  width: 100%;
-  height: 42px;
-  opacity: 0;
-  cursor: ew-resize;
+.horizontal-svg-fader:focus-visible .pot-knob {
+  stroke: #71d0a5;
 }
 
 .horizontal-svg-fader svg {
