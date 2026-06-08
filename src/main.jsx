@@ -63,6 +63,10 @@ function formatTime(seconds) {
   return `${mins}:${secs}`;
 }
 
+function formatRemaining(seconds) {
+  return `-${formatTime(seconds)}`;
+}
+
 function formatBpm(value) {
   return Number.isFinite(value) ? value.toFixed(1) : '--.-';
 }
@@ -603,6 +607,7 @@ function Deck({
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [showRemaining, setShowRemaining] = useState(false);
   const [cuePoint, setCuePoint] = useState(0);
   const [hasCue, setHasCue] = useState(false);
   const [sinkId, setSinkId] = useState('');
@@ -885,6 +890,16 @@ function Deck({
             <span>{isPlaying ? 'RUN' : 'STOP'}</span>
           </div>
           <DeckWaveDisplay track={deckTrack} colorClass={side === 'A' ? 'wave-a' : 'wave-b'} />
+          <button
+            type="button"
+            className="deck-time-toggle"
+            onClick={() => setShowRemaining((value) => !value)}
+            title="Alternar tiempo transcurrido/restante"
+          >
+            {showRemaining
+              ? formatRemaining(Math.max(0, duration - currentTime))
+              : `${formatTime(currentTime)} / ${formatTime(duration)}`}
+          </button>
           <div className="screen-readouts">
             <div>
               <small>BPM original</small>

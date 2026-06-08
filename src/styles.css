@@ -366,6 +366,16 @@ h2 {
   background: #070b10;
 }
 
+.deck-time-toggle {
+  justify-self: center;
+  width: auto;
+  border-color: #26313b;
+  color: #71d0a5;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.35rem 0.65rem;
+  font-variant-numeric: tabular-nums;
+}
+
 .transport {
   justify-content: center;
   flex-wrap: wrap;

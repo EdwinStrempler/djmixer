@@ -40,6 +40,7 @@ La app muestra un tutorial por pasos la primera vez y guarda en `localStorage` q
 - `Volumen canal`: volumen base del deck.
 - `Flanger`: efecto por canal para la salida principal. El pre-cue se mantiene seco.
 - Pantalla del deck: muestra estado, BPM original, BPM actual y ajuste de tempo.
+- Contador de deck: muestra `actual / total`; al hacer click alterna a tiempo restante.
 - Pantalla central de ondas: muestra ambas canciones con una linea fija al centro para comparar entradas.
 - `Tempo / BPM`: cuadro central con fader vertical para canal A y canal B.
 - `Reset`: vuelve el tempo del canal a `0.0%`.
