@@ -56,6 +56,7 @@ select {
 
 input[type='range'] {
   accent-color: #71d0a5;
+  cursor: pointer;
   padding: 0;
 }
 
@@ -69,8 +70,7 @@ input[type='range'] {
 .deck-header,
 .transport,
 .device-row,
-.meter-row,
-.global-buttons {
+.meter-row {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -142,7 +142,7 @@ h2 {
   max-height: min(720px, 92vh);
   overflow: auto;
   display: grid;
-  gap: 10px;
+  gap: 16px;
   color: #c5d0dc;
   background: #1a1f27;
   border: 1px solid #3a4654;
@@ -158,16 +158,31 @@ h2 {
   gap: 12px;
 }
 
-.tutorial ol {
-  display: grid;
-  gap: 6px;
+.tutorial p {
   margin: 0;
-  padding-left: 22px;
+  line-height: 1.45;
 }
 
-.tutorial li,
-.tutorial p {
-  line-height: 1.45;
+.tutorial-progress {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+
+.tutorial-progress span {
+  height: 6px;
+  border-radius: 999px;
+  background: #303a46;
+}
+
+.tutorial-progress span.active {
+  background: #71d0a5;
+}
+
+.tutorial-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .mixer-layout {
@@ -215,7 +230,8 @@ h2 {
 }
 
 .source-controls label,
-.vertical-fader,
+.channel-volume,
+.channel-effect,
 .output-panel {
   display: grid;
   gap: 8px;
@@ -259,66 +275,99 @@ h2 {
   display: block;
 }
 
-.audio-placeholder {
-  place-items: center;
-  text-align: center;
+.deck-screen {
+  display: grid;
+  grid-template-rows: auto minmax(118px, 1fr) auto auto;
+  gap: 10px;
+  align-items: center;
   color: #c5d0dc;
   background:
-    linear-gradient(180deg, rgba(113, 208, 165, 0.12), transparent),
+    linear-gradient(180deg, rgba(113, 208, 165, 0.14), transparent 55%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 4px),
     #090c11;
+  padding: 14px;
 }
 
-.audio-placeholder.visible-player {
-  display: grid;
-}
-
-.audio-bars {
+.screen-topline,
+.screen-readouts {
   display: flex;
-  align-items: end;
-  justify-content: center;
-  gap: 8px;
-  height: 86px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
-.audio-bars span {
-  width: 12px;
+.screen-topline {
+  color: #71d0a5;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.screen-readouts {
+  align-items: stretch;
+}
+
+.screen-readouts div {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+  border: 1px solid #26313b;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.24);
+  padding: 8px;
+}
+
+.screen-readouts small {
+  color: #89a0b6;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+}
+
+.screen-readouts strong {
+  color: #f4f7fb;
+  font-size: clamp(0.95rem, 2vw, 1.2rem);
+  font-variant-numeric: tabular-nums;
+}
+
+.deck-screen p {
+  color: #89a0b6;
+  text-align: center;
+  font-size: 0.82rem;
+}
+
+.deck-screen .cue-readout {
+  color: #71d0a5;
+  font-variant-numeric: tabular-nums;
+}
+
+.load-progress {
+  height: 8px;
+  overflow: hidden;
+  border: 1px solid #2d3c48;
   border-radius: 999px;
+  background: #0c1118;
+}
+
+.load-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
   background: #71d0a5;
+  transition: width 160ms ease;
 }
 
-.audio-bars span:nth-child(1) {
-  height: 34px;
-}
-
-.audio-bars span:nth-child(2) {
-  height: 58px;
-}
-
-.audio-bars span:nth-child(3) {
-  height: 74px;
-}
-
-.audio-bars span:nth-child(4) {
-  height: 42px;
-}
-
-.audio-bars span:nth-child(5) {
-  height: 68px;
-}
-
-.audio-bars span:nth-child(6) {
-  height: 52px;
-}
-
-.audio-bars span:nth-child(7) {
-  height: 80px;
-}
-
-.audio-bars span:nth-child(8) {
-  height: 38px;
+.deck-wave-display {
+  width: 100%;
+  height: 100%;
+  min-height: 118px;
+  border: 1px solid #202936;
+  border-radius: 4px;
+  background: #070b10;
 }
 
 .transport {
+  justify-content: center;
   flex-wrap: wrap;
 }
 
@@ -327,6 +376,11 @@ h2 {
   grid-template-columns: 64px 1fr 64px;
   gap: 12px;
   align-items: center;
+  cursor: grab;
+}
+
+.jog:active {
+  cursor: grabbing;
 }
 
 .jog-button {
@@ -347,6 +401,7 @@ h2 {
     radial-gradient(circle at center, #171b22 0 18%, #303846 19% 21%, #0b0e13 22% 100%),
     repeating-radial-gradient(circle, #141920 0 8px, #1e2530 9px 11px);
   box-shadow: inset 0 0 0 2px #4a5665;
+  cursor: grab;
   user-select: none;
   touch-action: none;
   transition:
@@ -416,12 +471,103 @@ h2 {
   font-variant-numeric: tabular-nums;
 }
 
-.vertical-fader input {
-  min-height: 42px;
+.timeline input {
+  min-height: 28px;
 }
 
-.vertical-fader strong {
+.channel-volume,
+.channel-effect {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+}
+
+.channel-volume span,
+.channel-effect span,
+.channel-volume .horizontal-svg-fader,
+.channel-effect .horizontal-svg-fader {
+  grid-column: 1 / -1;
+}
+
+.channel-volume strong,
+.channel-effect strong,
+.tempo-fader strong,
+.tempo-fader small {
   color: #71d0a5;
+}
+
+.svg-fader {
+  position: relative;
+}
+
+.vertical-svg-fader {
+  width: 64px;
+  height: 170px;
+  justify-self: center;
+}
+
+.vertical-svg-fader input {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 170px;
+  height: 64px;
+  margin: 53px 0 0 -53px;
+  opacity: 0;
+  cursor: ns-resize;
+  transform: rotate(-90deg);
+}
+
+.vertical-svg-fader svg {
+  width: 64px;
+  height: 170px;
+  overflow: visible;
+}
+
+.horizontal-svg-fader {
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+}
+
+.horizontal-svg-fader input {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 42px;
+  opacity: 0;
+  cursor: ew-resize;
+}
+
+.horizontal-svg-fader svg {
+  width: 100%;
+  height: 42px;
+  display: block;
+  overflow: visible;
+}
+
+.pot-rail {
+  fill: #18202a;
+  stroke: #3a4654;
+  stroke-width: 1;
+}
+
+.pot-fill {
+  fill: #71d0a5;
+  opacity: 0.8;
+}
+
+.pot-knob {
+  fill: #e8eef5;
+  stroke: #141920;
+  stroke-width: 2;
+  filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.35));
+}
+
+.pot-mark {
+  stroke: #141920;
+  stroke-width: 2;
+  stroke-linecap: round;
 }
 
 .center-mixer {
@@ -429,6 +575,140 @@ h2 {
   top: 16px;
   display: grid;
   gap: 18px;
+}
+
+.wave-match-screen {
+  display: grid;
+  gap: 8px;
+  border: 1px solid #2d3440;
+  border-radius: 6px;
+  background: #070b10;
+  padding: 10px;
+}
+
+.wave-head,
+.wave-times {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.wave-head div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.wave-head span,
+.wave-times span {
+  color: #89a0b6;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+
+.wave-head strong {
+  overflow: hidden;
+  color: #f4f7fb;
+  font-size: 0.78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wave-match-screen svg {
+  width: 100%;
+  height: 170px;
+  border: 1px solid #202936;
+  border-radius: 4px;
+  display: block;
+}
+
+.wave-bg {
+  fill: #0a0f15;
+}
+
+.wave-grid-line {
+  fill: none;
+  stroke: #24313e;
+  stroke-width: 0.25;
+}
+
+.wave-path {
+  opacity: 0.9;
+}
+
+.wave-a {
+  fill: #71d0a5;
+}
+
+.wave-b {
+  fill: #e06b75;
+}
+
+.wave-divider {
+  stroke: #2e3946;
+  stroke-width: 0.5;
+}
+
+.wave-center-line {
+  stroke: #f4f7fb;
+  stroke-width: 0.8;
+  stroke-dasharray: 2 2;
+}
+
+.wave-times {
+  color: #89a0b6;
+  font-variant-numeric: tabular-nums;
+}
+
+.tempo-panel {
+  display: grid;
+  gap: 12px;
+  border: 1px solid #2d3440;
+  border-radius: 6px;
+  background: #11161d;
+  padding: 12px;
+}
+
+.automix-button {
+  width: 100%;
+  border-color: #71d0a5;
+}
+
+.tempo-panel h3 {
+  margin: 0;
+  color: #f4f7fb;
+  font-size: 0.9rem;
+}
+
+.tempo-bank {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.tempo-fader {
+  display: grid;
+  gap: 7px;
+  justify-items: center;
+  min-width: 0;
+  color: #c5d0dc;
+  font-size: 0.82rem;
+}
+
+.tempo-fader > span {
+  color: #f4f7fb;
+  font-weight: 700;
+}
+
+.tempo-reset {
+  width: 100%;
+  padding: 0.45rem 0.55rem;
+  font-size: 0.76rem;
+}
+
+.tempo-fader small {
+  color: #89a0b6;
+  font-size: 0.76rem;
 }
 
 .crossfader {
@@ -452,15 +732,6 @@ h2 {
 meter {
   width: 100%;
   height: 18px;
-}
-
-.global-buttons {
-  align-items: stretch;
-  flex-direction: column;
-}
-
-.global-buttons button {
-  width: 100%;
 }
 
 .status {
