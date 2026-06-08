@@ -69,7 +69,6 @@ input[type='range'] {
 .deck-header,
 .transport,
 .device-row,
-.url-row,
 .meter-row,
 .global-buttons {
   display: flex;
@@ -80,6 +79,12 @@ input[type='range'] {
 .topbar {
   justify-content: space-between;
   margin-bottom: 12px;
+}
+
+.topbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .device-row {
@@ -120,6 +125,49 @@ h2 {
   border: 1px solid #2d3440;
   border-radius: 6px;
   padding: 10px 12px;
+}
+
+.tutorial-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(5, 7, 10, 0.72);
+}
+
+.tutorial {
+  width: min(680px, 100%);
+  max-height: min(720px, 92vh);
+  overflow: auto;
+  display: grid;
+  gap: 10px;
+  color: #c5d0dc;
+  background: #1a1f27;
+  border: 1px solid #3a4654;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 24px 90px rgba(0, 0, 0, 0.42);
+}
+
+.tutorial-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tutorial ol {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 22px;
+}
+
+.tutorial li,
+.tutorial p {
+  line-height: 1.45;
 }
 
 .mixer-layout {
@@ -190,14 +238,6 @@ h2 {
   color: #71d0a5;
 }
 
-.url-row {
-  align-items: stretch;
-}
-
-.url-row button {
-  width: 92px;
-}
-
 .player-frame {
   position: relative;
   width: 100%;
@@ -208,8 +248,7 @@ h2 {
   background: #07090d;
 }
 
-.visible-player,
-.hidden-player {
+.visible-player {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -277,10 +316,6 @@ h2 {
 
 .audio-bars span:nth-child(8) {
   height: 38px;
-}
-
-.hidden-player {
-  display: none;
 }
 
 .transport {
@@ -454,7 +489,14 @@ meter {
     flex-direction: column;
   }
 
-  .url-row,
+  .topbar-actions {
+    width: 100%;
+  }
+
+  .topbar-actions button {
+    flex: 1;
+  }
+
   .device-row {
     align-items: stretch;
     flex-direction: column;
@@ -462,10 +504,6 @@ meter {
 
   .device-row {
     grid-template-columns: 1fr;
-  }
-
-  .url-row button {
-    width: 100%;
   }
 
   .jog {

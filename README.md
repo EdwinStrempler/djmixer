@@ -1,6 +1,6 @@
 # DJ Mixer Practice
 
-Interfaz sencilla de DJ hecha con Vite + React para practicar con dos canales.
+Interfaz sencilla de DJ hecha con Vite + React para practicar con archivos locales de audio.
 
 ## Correr
 
@@ -16,24 +16,33 @@ npm.cmd install
 npm.cmd run dev
 ```
 
-## Qué tiene
+## Tutorial rapido
 
-- Dos decks: canal A y canal B.
-- Carga de archivos locales de audio: MP3, WAV, AIFF, FLAC, M4A u OGG según soporte del navegador.
-- Carga de links de YouTube con el IFrame Player.
-- Fader de volumen por canal.
-- Crossfader A/B.
-- Play, pausa, retroceso y avance.
-- Jog wheel por deck con indicador visual: click en `-5` / `+5` o arrastra el disco hacia izquierda/derecha.
-- Selector de salida `Pre-cue` para archivos locales cuando el navegador soporta `HTMLMediaElement.setSinkId`.
-- Modo `Pre-cue` por deck local: duplica internamente el audio para que puedas escuchar en audifonos mientras la mezcla principal sigue obedeciendo al crossfader.
-- Boton `Probar` para mandar un tono corto al dispositivo de salida seleccionado.
+La app muestra el tutorial la primera vez y guarda en `localStorage` que ya lo viste. Puedes abrirlo otra vez con el boton `Tutorial`.
 
-## Limitaciones importantes
+1. Abre la app en Chrome o Edge desde `localhost`.
+2. Carga una cancion local en el canal A y otra en el canal B.
+3. Deja el crossfader hacia A para que la mezcla principal escuche el canal A.
+4. Haz click en `Detectar salidas`. El navegador puede pedir permiso de microfono para mostrar nombres de dispositivos.
+5. En el canal B, elige tus audifonos o interfaz en `Salida pre-cue local`.
+6. Pulsa `Probar`. Si escuchas el tono en audifonos, la salida esta bien asignada.
+7. Activa `Pre-cue` en el canal B.
+8. Dale `Play B` y prepara la entrada con el circulo, los botones `Retro` / `Avanza`, o la barra de tiempo.
+9. Cuando estes listo, mueve el crossfader hacia B.
 
-- YouTube no permite usar tu cuenta Premium desde un reproductor embebido de una app local.
-- YouTube tampoco permite elegir un dispositivo de salida por deck desde el iframe.
-- La salida de audio separada funciona mejor con archivos locales de audio en Chrome o Edge usando `localhost`.
-- Para preescuchar: elige tus audifonos/interfaz en `Salida pre-cue local`, pulsa `Probar`, activa `Pre-cue` y luego dale play al deck.
-- La mezcla principal siempre sale por la salida predeterminada del navegador/sistema.
-- Para que el navegador muestre nombres de dispositivos, puede pedir permiso de micrófono.
+## Controles
+
+- `Archivo local de audio`: carga MP3, WAV, AIFF, FLAC, M4A u OGG segun soporte del navegador.
+- `Volumen canal`: volumen base del deck.
+- `Crossfader`: mezcla entre A y B para la salida principal.
+- `Pre-cue`: manda una copia del deck al dispositivo seleccionado, sin depender del crossfader.
+- `Probar`: manda un tono corto al dispositivo de pre-cue seleccionado.
+- `Tutorial`: vuelve a abrir el tutorial aunque ya lo hayas visto.
+- Circulo del deck: click en `-5` / `+5` o arrastra izquierda/derecha para retroceder/avanzar.
+
+## Notas
+
+- La mezcla principal sale por la salida predeterminada del navegador/sistema.
+- El pre-cue necesita que tus audifonos/interfaz aparezcan como una salida de audio separada en Windows.
+- Si `Probar` no suena en audifonos, revisa el dispositivo elegido, la salida de Windows, el volumen del dispositivo y usa Chrome o Edge.
+- YouTube fue retirado para mantener el mixer enfocado en archivos locales y pre-cue.

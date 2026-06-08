@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import './styles.css';
 
 const SEEK_STEP = 5;
+const TUTORIAL_STORAGE_KEY = 'dj-mixer-tutorial-seen';
 
 function createToneUrl() {
   const sampleRate = 44100;
@@ -38,40 +39,6 @@ function createToneUrl() {
   }
 
   return URL.createObjectURL(new Blob([buffer], { type: 'audio/wav' }));
-}
-
-function parseYouTubeId(value) {
-  if (!value.trim()) return '';
-
-  try {
-    const url = new URL(value.trim());
-    if (url.hostname.includes('youtu.be')) return url.pathname.slice(1);
-    if (url.searchParams.get('v')) return url.searchParams.get('v');
-    const embedMatch = url.pathname.match(/\/(embed|shorts)\/([^/?]+)/);
-    if (embedMatch) return embedMatch[2];
-  } catch {
-    return value.trim();
-  }
-
-  return value.trim();
-}
-
-function loadYouTubeApi() {
-  if (window.YT?.Player) return Promise.resolve(window.YT);
-
-  return new Promise((resolve) => {
-    const previous = window.onYouTubeIframeAPIReady;
-    window.onYouTubeIframeAPIReady = () => {
-      previous?.();
-      resolve(window.YT);
-    };
-
-    if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
-      const script = document.createElement('script');
-      script.src = 'https://www.youtube.com/iframe_api';
-      document.head.appendChild(script);
-    }
-  });
 }
 
 function getCrossGain(side, crossfader) {
@@ -170,13 +137,9 @@ function Deck({
 }) {
   const audioRef = useRef(null);
   const cueAudioRef = useRef(null);
-  const ytHostRef = useRef(null);
-  const ytPlayerRef = useRef(null);
   const objectUrlRef = useRef('');
-  const [sourceType, setSourceType] = useState('local');
-  const [youtubeUrl, setYoutubeUrl] = useState('');
   const [loadedTitle, setLoadedTitle] = useState('Sin pista');
-  const [status, setStatus] = useState('Carga un archivo o link');
+  const [status, setStatus] = useState('Carga un archivo de audio');
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
@@ -187,29 +150,25 @@ function Deck({
     () => Math.round(channelVolume * getCrossGain(side, crossfader)),
     [channelVolume, crossfader, side],
   );
-  const cueVolume = preCue && sourceType === 'local' ? channelVolume : 0;
+  const cueVolume = preCue ? channelVolume : 0;
 
   useEffect(() => {
     const audio = audioRef.current;
     const cueAudio = cueAudioRef.current;
 
-    if (sourceType === 'local' && audio) {
+    if (audio) {
       audio.volume = mixVolume / 100;
     }
 
-    if (sourceType === 'local' && cueAudio) {
+    if (cueAudio) {
       cueAudio.volume = cueVolume / 100;
     }
-
-    if (sourceType === 'youtube' && ytPlayerRef.current?.setVolume) {
-      ytPlayerRef.current.setVolume(mixVolume);
-    }
-  }, [cueVolume, mixVolume, sourceType]);
+  }, [cueVolume, mixVolume]);
 
   useEffect(() => {
     const audio = audioRef.current;
     const cueAudio = cueAudioRef.current;
-    if (!audio || !cueAudio || sourceType !== 'local') return;
+    if (!audio || !cueAudio) return;
 
     cueAudio.currentTime = audio.currentTime || 0;
     if (preCue && !audio.paused) {
@@ -221,7 +180,7 @@ function Deck({
     if (!preCue) {
       cueAudio.pause();
     }
-  }, [preCue, sourceType]);
+  }, [preCue]);
 
   useEffect(() => {
     registerDeck(side, {
@@ -232,26 +191,15 @@ function Deck({
   });
 
   useEffect(() => {
-    const timer = window.setInterval(() => {
-      if (sourceType === 'youtube' && ytPlayerRef.current?.getCurrentTime) {
-        setCurrentTime(ytPlayerRef.current.getCurrentTime() || 0);
-        setDuration(ytPlayerRef.current.getDuration?.() || 0);
-      }
-    }, 500);
-    return () => window.clearInterval(timer);
-  }, [sourceType]);
-
-  useEffect(() => {
     return () => {
       if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
-      ytPlayerRef.current?.destroy?.();
     };
   }, []);
 
   async function applySink(nextSinkId) {
     setSinkId(nextSinkId);
     const cueAudio = cueAudioRef.current;
-    if (!cueAudio?.setSinkId || sourceType !== 'local') return;
+    if (!cueAudio?.setSinkId) return;
 
     try {
       await cueAudio.setSinkId(nextSinkId);
@@ -286,8 +234,6 @@ function Deck({
 
     if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
     objectUrlRef.current = URL.createObjectURL(file);
-    ytPlayerRef.current?.pauseVideo?.();
-    setSourceType('local');
     setLoadedTitle(file.name);
     setStatus('Archivo local listo');
     setIsPlaying(false);
@@ -299,54 +245,7 @@ function Deck({
     cueAudioRef.current.load();
   }
 
-  async function loadYouTube() {
-    const videoId = parseYouTubeId(youtubeUrl);
-    if (!videoId) return;
-
-    setSourceType('youtube');
-    setLoadedTitle(`YouTube: ${videoId}`);
-    setStatus('Cargando YouTube...');
-    audioRef.current.pause();
-    cueAudioRef.current.pause();
-    setIsPlaying(false);
-
-    const YT = await loadYouTubeApi();
-    if (ytPlayerRef.current) {
-      ytPlayerRef.current.cueVideoById(videoId);
-      ytPlayerRef.current.pauseVideo();
-      ytPlayerRef.current.setVolume(mixVolume);
-      setStatus('YouTube listo');
-      return;
-    }
-
-    ytPlayerRef.current = new YT.Player(ytHostRef.current, {
-      width: '100%',
-      height: '100%',
-      playerVars: {
-        playsinline: 1,
-        controls: 1,
-        rel: 0,
-      },
-      events: {
-        onReady: (event) => {
-          event.target.cueVideoById(videoId);
-          event.target.setVolume(mixVolume);
-          event.target.pauseVideo();
-          setStatus('YouTube listo');
-        },
-        onStateChange: (event) => {
-          setIsPlaying(event.data === YT.PlayerState.PLAYING);
-        },
-      },
-    });
-  }
-
   function handlePlay() {
-    if (sourceType === 'youtube') {
-      ytPlayerRef.current?.playVideo?.();
-      return;
-    }
-
     const audio = audioRef.current;
     const cueAudio = cueAudioRef.current;
     audio?.play();
@@ -360,23 +259,11 @@ function Deck({
   }
 
   function handlePause() {
-    if (sourceType === 'youtube') {
-      ytPlayerRef.current?.pauseVideo?.();
-      return;
-    }
-
     audioRef.current?.pause();
     cueAudioRef.current?.pause();
   }
 
   function seekBy(seconds) {
-    if (sourceType === 'youtube') {
-      const player = ytPlayerRef.current;
-      if (!player?.seekTo) return;
-      player.seekTo(Math.max(0, (player.getCurrentTime?.() || 0) + seconds), true);
-      return;
-    }
-
     const audio = audioRef.current;
     if (!audio) return;
     const nextTime = Math.max(0, Math.min(audio.duration || 0, audio.currentTime + seconds));
@@ -388,9 +275,7 @@ function Deck({
 
   function onTimelineChange(event) {
     const next = Number(event.target.value);
-    if (sourceType === 'youtube') {
-      ytPlayerRef.current?.seekTo?.(next, true);
-    } else if (audioRef.current) {
+    if (audioRef.current) {
       audioRef.current.currentTime = next;
       if (cueAudioRef.current) {
         cueAudioRef.current.currentTime = next;
@@ -414,24 +299,10 @@ function Deck({
           Archivo local de audio
           <input type="file" accept="audio/*,.mp3,.wav,.aiff,.aif,.flac,.m4a,.ogg" onChange={handleLocalFile} />
         </label>
-        <label>
-          Link de YouTube
-          <div className="url-row">
-            <input
-              type="url"
-              value={youtubeUrl}
-              placeholder="https://youtube.com/watch?v=..."
-              onChange={(event) => setYoutubeUrl(event.target.value)}
-            />
-            <button type="button" onClick={loadYouTube}>
-              Cargar
-            </button>
-          </div>
-        </label>
       </div>
 
       <div className="player-frame">
-        <div className={sourceType === 'local' ? 'audio-placeholder visible-player' : 'hidden-player'}>
+        <div className="audio-placeholder visible-player">
           <div className="audio-bars" aria-hidden="true">
             <span />
             <span />
@@ -452,7 +323,6 @@ function Deck({
           onLoadedMetadata={(event) => setDuration(event.currentTarget.duration || 0)}
         />
         <audio ref={cueAudioRef} />
-        <div ref={ytHostRef} className={sourceType === 'youtube' ? 'visible-player' : 'hidden-player'} />
       </div>
 
       <div className="transport">
@@ -490,7 +360,7 @@ function Deck({
           value={channelVolume}
           onChange={(event) => setChannelVolume(Number(event.target.value))}
         />
-        <strong>{mixVolume}% mix {preCue && sourceType === 'local' ? `/ ${cueVolume}% cue` : ''}</strong>
+        <strong>{mixVolume}% mix {preCue ? `/ ${cueVolume}% cue` : ''}</strong>
       </label>
 
       <div className="output-panel">
@@ -500,7 +370,6 @@ function Deck({
             type="checkbox"
             checked={preCue}
             onChange={(event) => setPreCue(event.target.checked)}
-            disabled={sourceType !== 'local'}
           />
           Pre-cue: ignora el crossfader
         </label>
@@ -510,7 +379,7 @@ function Deck({
           onChange={applySink}
           onRefresh={refreshDevices}
           onTest={testSink}
-          disabled={sourceType !== 'local' || !cueAudioRef.current?.setSinkId}
+          disabled={!cueAudioRef.current?.setSinkId}
         />
       </div>
 
@@ -519,11 +388,41 @@ function Deck({
   );
 }
 
+function Tutorial({ onClose }) {
+  return (
+    <div className="tutorial-overlay" role="dialog" aria-modal="true" aria-labelledby="tutorial-title">
+      <section className="tutorial">
+        <div className="tutorial-header">
+          <h2 id="tutorial-title">Tutorial rapido</h2>
+          <button type="button" onClick={onClose}>
+            Entendido
+          </button>
+        </div>
+        <ol>
+          <li>Carga una cancion local en el canal A y otra en el canal B.</li>
+          <li>Deja el crossfader hacia A para que la mezcla principal escuche el canal A.</li>
+          <li>Haz click en Detectar salidas y acepta el permiso si el navegador lo pide.</li>
+          <li>En el canal B elige tus audifonos en Salida pre-cue local y pulsa Probar.</li>
+          <li>Activa Pre-cue en B, dale Play B y prepara la entrada con el circulo o la barra de tiempo.</li>
+          <li>Cuando estes listo, mueve el crossfader hacia B para hacer la mezcla.</li>
+        </ol>
+        <p>
+          La mezcla principal sale por el audio predeterminado de Windows. El pre-cue usa una segunda copia del deck
+          local y la manda al dispositivo que elijas.
+        </p>
+      </section>
+    </div>
+  );
+}
+
 function App() {
   const [crossfader, setCrossfader] = useState(0);
   const [volumeA, setVolumeA] = useState(80);
   const [volumeB, setVolumeB] = useState(80);
   const [devices, setDevices] = useState([]);
+  const [showTutorial, setShowTutorial] = useState(() => {
+    return window.localStorage.getItem(TUTORIAL_STORAGE_KEY) !== 'true';
+  });
   const deckApi = useRef({});
 
   async function refreshDevices() {
@@ -542,6 +441,11 @@ function App() {
     deckApi.current[side] = api;
   }
 
+  function closeTutorial() {
+    window.localStorage.setItem(TUTORIAL_STORAGE_KEY, 'true');
+    setShowTutorial(false);
+  }
+
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -549,15 +453,22 @@ function App() {
           <p className="eyebrow">Practice mixer</p>
           <h1>DJ Mixer</h1>
         </div>
-        <button type="button" onClick={refreshDevices}>
-          Detectar salidas
-        </button>
+        <div className="topbar-actions">
+          <button type="button" onClick={() => setShowTutorial(true)}>
+            Tutorial
+          </button>
+          <button type="button" onClick={refreshDevices}>
+            Detectar salidas
+          </button>
+        </div>
       </header>
 
       <div className="notice">
-        YouTube funciona con el reproductor embebido, pero no permite usar Premium ni elegir dispositivo de salida.
-        Para pre-cue usa archivos locales, elige audifonos como salida y activa Pre-cue en ese deck.
+        Solo archivos locales de audio. Para pre-cue usa Chrome o Edge, elige tus audifonos como salida y activa
+        Pre-cue en el deck que quieres preparar.
       </div>
+
+      {showTutorial && <Tutorial onClose={closeTutorial} />}
 
       <div className="mixer-layout">
         <Deck
