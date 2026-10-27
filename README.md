@@ -2,6 +2,10 @@
 
 `/` muestra la landing de Strempler. El mixer vive en `/djmixer/`; Vite construye ambas páginas y Netlify publica `dist/`.
 
+## Publicación
+
+Netlify publica automáticamente los cambios enviados a `dev`. Las demás ramas y las vistas previas de pull requests están desactivadas. El repositorio es público; escribir en él requiere acceso del propietario o de un colaborador autorizado.
+
 Interfaz sencilla de DJ hecha con Vite + React para practicar con archivos locales de audio.
 
 ## Correr
