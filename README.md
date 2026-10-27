@@ -1,5 +1,7 @@
 # DJ Mixer Practice
 
+`/` muestra la landing de Strempler. El mixer vive en `/djmixer/`; Vite construye ambas páginas y Netlify publica `dist/`.
+
 Interfaz sencilla de DJ hecha con Vite + React para practicar con archivos locales de audio.
 
 ## Correr

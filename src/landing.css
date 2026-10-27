@@ -1,0 +1,50 @@
+:root {
+  color-scheme: dark;
+  color: #fff;
+  background: #000;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 280px; }
+.strempler {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px 64px;
+}
+.strempler-logo {
+  display: block;
+  width: clamp(150px, 22vw, 220px);
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+h1 {
+  font-size: clamp(48px, 8vw, 80px);
+  font-weight: 450;
+  line-height: 1.1;
+  letter-spacing: -.055em;
+  margin: 26px 0 38px;
+}
+.mixer-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 48px;
+  min-height: 50px;
+  padding: 14px 22px;
+  border: 1px solid #777;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 14px;
+  text-decoration: none;
+  transition: background .18s, color .18s, border-color .18s;
+}
+.mixer-link span { font-size: 20px; line-height: 1; }
+.mixer-link:hover { background: #fff; color: #000; border-color: #fff; }
+.mixer-link:focus-visible { outline: 2px solid #fff; outline-offset: 6px; }
+@media (prefers-reduced-motion: reduce) { .mixer-link { transition: none; } }
